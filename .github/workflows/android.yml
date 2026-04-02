@@ -38,43 +38,45 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (FINAL FIXED LAYOUT)
+    - name: Install Android SDK (absolute-path, layout-safe)
       run: |
+        set -e
+
         sudo mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
 
-        # Clean any previous tool installs
         sudo rm -rf cmdline-tools
         sudo mkdir -p cmdline-tools/latest
 
-        # Download Android commandline tools
         sudo wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
 
-        # Extract into a temp directory
-        sudo unzip -q tools.zip -d /tmp/sdk-tools
+        # unzip INTO latest so layout is guaranteed
+        sudo unzip -q tools.zip -d cmdline-tools/latest
+        sudo rm tools.zip
 
-        # Move EVERYTHING into cmdline-tools/latest (this is what sdkmanager expects)
-        sudo mv /tmp/sdk-tools/* cmdline-tools/latest/
+        SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
 
-        # Cleanup
-        sudo rm -rf /tmp/sdk-tools tools.zip
+        # sanity check (this is where previous runs failed)
+        if [ ! -x "$SDKMANAGER" ]; then
+          echo "❌ sdkmanager NOT found at expected location"
+          ls -R cmdline-tools
+          exit 1
+        fi
 
-        # Export paths
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+        echo "✅ sdkmanager located at $SDKMANAGER"
 
-        # Verify sdkmanager works and knows SDK root
-        sdkmanager --sdk_root=$ANDROID_SDK_ROOT --version
+        # Accept licenses and install components (ALWAYS pass --sdk_root)
+        yes | "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT --licenses
 
-        # Accept licenses and install required components
-        yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-
-        sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+        "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT \
           "platform-tools" \
           "platforms;android-31" \
           "build-tools;31.0.0" \
           "ndk;23.1.7779620"
+
+        # Persist paths for later steps
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
 
     - name: Install Python build tools
       run: |
@@ -82,7 +84,7 @@ jobs:
         python -m pip install buildozer cython
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Verify required commands
+    - name: Verify tools
       run: |
         which java
         which sdkmanager
