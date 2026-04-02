@@ -88,11 +88,16 @@ jobs:
       run: |
         rm -rf ~/.buildozer/android/platform/android-sdk
 
-    - name: Install Python build tools
+   
+    - name: Install Python build tools (p4a compatible)
       run: |
         python -m pip install --upgrade pip
-        python -m pip install buildozer cython
+        python -m pip install \
+        "setuptools<70" \
+        "cython==0.29.36" \
+        buildozer
         echo "$HOME/.local/bin" >> $GITHUB_PATH
+
 
     - name: Verify AIDL exists
       run: |
