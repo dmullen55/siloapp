@@ -10,12 +10,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       ANDROID_SDK_ROOT: /home/runner/android-sdk
       ANDROID_HOME: /home/runner/android-sdk
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
+
     - name: Checkout repo
       uses: actions/checkout@v4
 
@@ -24,7 +25,7 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install system dependencies (Java 17!)
+    - name: Install system dependencies (Java 17)
       run: |
         sudo apt update
         sudo apt install -y \
@@ -33,27 +34,22 @@ jobs:
           unzip \
           zip \
           git \
+          wget \
           libncurses5 \
-          libstdc++6 \
-          wget
+          libstdc++6
 
-        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (safe layout)
+    - name: Install Android SDK + tools
       run: |
         mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
 
+        # Download commandline tools
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-        unzip tools.zip
+        unzip tools.zip -d cmdline-tools
 
-        # Ensure correct directory layout
-        if [ ! -d "cmdline-tools/latest" ]; then
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/
-        fi
-
+        # Use the provided "latest" folder (it already exists!)
         export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 
         yes | sdkmanager --licenses
@@ -61,7 +57,7 @@ jobs:
         sdkmanager \
           "platform-tools" \
           "platforms;android-31" \
-          "build-tools;30.0.3" \
+          "build-tools;31.0.0" \
           "ndk;23.1.7779620"
 
     - name: Install Python tools
@@ -69,7 +65,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install buildozer==1.5.0 cython
 
-    - name: Build APK with Buildozer (verbose)
+    - name: Build APK
       run: |
         buildozer -v android debug
 
