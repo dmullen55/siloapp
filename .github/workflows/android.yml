@@ -38,37 +38,39 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (sdkmanager FIXED PROPERLY)
+    - name: Install Android SDK (FINAL FIXED LAYOUT)
       run: |
         sudo mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
 
+        # Clean any previous tool installs
         sudo rm -rf cmdline-tools
+        sudo mkdir -p cmdline-tools/latest
+
+        # Download Android commandline tools
         sudo wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-        sudo unzip -q tools.zip
 
-        # ✅ Find sdkmanager no matter where Google puts it
-        SDKMANAGER_PATH=$(find $ANDROID_SDK_ROOT -type f -name sdkmanager -perm -111 | head -n 1)
+        # Extract into a temp directory
+        sudo unzip -q tools.zip -d /tmp/sdk-tools
 
-        if [ -z "$SDKMANAGER_PATH" ]; then
-          echo "❌ sdkmanager not found after extraction"
-          exit 1
-        fi
+        # Move EVERYTHING into cmdline-tools/latest (this is what sdkmanager expects)
+        sudo mv /tmp/sdk-tools/* cmdline-tools/latest/
 
-        SDKMANAGER_DIR=$(dirname "$SDKMANAGER_PATH")
-        echo "✅ sdkmanager found at: $SDKMANAGER_PATH"
+        # Cleanup
+        sudo rm -rf /tmp/sdk-tools tools.zip
 
-        # Make it available immediately
-        export PATH="$SDKMANAGER_DIR:$PATH"
-
-        # Persist for future steps
-        echo "$SDKMANAGER_DIR" >> $GITHUB_PATH
+        # Export paths
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
 
-        sdkmanager --version
-        yes | sdkmanager --licenses
+        # Verify sdkmanager works and knows SDK root
+        sdkmanager --sdk_root=$ANDROID_SDK_ROOT --version
 
-        sdkmanager \
+        # Accept licenses and install required components
+        yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
+
+        sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
           "platform-tools" \
           "platforms;android-31" \
           "build-tools;31.0.0" \
