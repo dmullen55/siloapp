@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -44,4 +47,3 @@ jobs:
       with:
         name: silomanager-apk
         path: bin/*.apk
-
