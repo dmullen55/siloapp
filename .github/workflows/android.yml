@@ -44,4 +44,4 @@ jobs:
       with:
         name: silomanager-apk
         path: bin/*.apk
-``
+
