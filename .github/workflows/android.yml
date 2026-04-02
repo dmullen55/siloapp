@@ -13,9 +13,14 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
+      # ✅ FORCE Buildozer to use THIS SDK (not ~/.buildozer)
+      ANDROIDSDK: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
+
+      ANDROIDNDK: /usr/local/lib/android/sdk/ndk/23.1.7779620
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
@@ -38,12 +43,12 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (final correct layout)
+    - name: Install Android SDK with build-tools (AIDL guaranteed)
       run: |
         set -eux
 
-        sudo mkdir -p $ANDROID_SDK_ROOT
-        cd $ANDROID_SDK_ROOT
+        sudo mkdir -p /usr/local/lib/android/sdk
+        cd /usr/local/lib/android/sdk
 
         sudo rm -rf cmdline-tools
         sudo mkdir -p cmdline-tools/latest
@@ -52,30 +57,23 @@ jobs:
         sudo unzip -q tools.zip -d cmdline-tools/latest
         sudo rm tools.zip
 
-        # ✅ FLATTEN the directory (this was the missing piece)
+        # ✅ Flatten layout so sdkmanager works
         sudo mv cmdline-tools/latest/cmdline-tools/* cmdline-tools/latest/
         sudo rmdir cmdline-tools/latest/cmdline-tools
 
-        SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
 
-        # Sanity check
-        test -x "$SDKMANAGER"
+        "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk --version
+        yes | "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk --licenses
 
-        # Make available immediately
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-
-        # Accept licenses & install required components
-        yes | "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT --licenses
-
-        "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT \
+        "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk \
           "platform-tools" \
           "platforms;android-31" \
           "build-tools;31.0.0" \
           "ndk;23.1.7779620"
 
-        # Persist PATH for later steps
-        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
 
     - name: Install Python build tools
       run: |
@@ -83,11 +81,9 @@ jobs:
         python -m pip install buildozer cython
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Verify tools
+    - name: Verify AIDL is available
       run: |
-        which java
-        which sdkmanager
-        which buildozer
+        ls /usr/local/lib/android/sdk/build-tools/31.0.0/aidl
 
     - name: Build APK with Buildozer
       run: |
