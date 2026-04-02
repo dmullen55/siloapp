@@ -23,11 +23,11 @@ android.ndk_api = 21
 
 # Pin exact versions to avoid license prompts & AIDL errors
 android.build_tools_version = 31.0.0
-android.ndk = 23.1.7779620
+android.ndk = 25b
 
 # ✅ Force Buildozer to use the SDK we install in GitHub Actions
 android.sdk_path = /usr/local/lib/android/sdk
-android.ndk_path = /usr/local/lib/android/sdk/ndk/23.1.7779620
+android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
 
 # Prevent Buildozer from trying to download/upate SDK components
 android.accept_sdk_license = True
