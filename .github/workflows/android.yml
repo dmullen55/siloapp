@@ -31,7 +31,29 @@ jobs:
           unzip \
           zip \
           libncurses5 \
-          libstdc++6
+          libstdc++6 \
+          wget
+
+    - name: Install Android SDK + AIDL
+      run: |
+        mkdir -p $HOME/android-sdk
+        cd $HOME/android-sdk
+
+        # Download SDK commandline tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O sdk-tools.zip
+        unzip sdk-tools.zip -d cmdline-tools
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/
+
+        # Set Android SDK environment
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+        # Install platform-tools + build-tools (which include AIDL)
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
+            "platform-tools" \
+            "platforms;android-31" \
+            "build-tools;31.0.0"
 
     - name: Install Python tools
       run: |
