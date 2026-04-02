@@ -38,27 +38,34 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (sdkmanager FIXED)
+    - name: Install Android SDK (sdkmanager FIXED PROPERLY)
       run: |
         sudo mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
 
         sudo rm -rf cmdline-tools
-        sudo mkdir -p cmdline-tools/latest
-
         sudo wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-        sudo unzip -q tools.zip -d /tmp/sdk-tools
+        sudo unzip -q tools.zip
 
-        # Move EVERYTHING into latest (layout-agnostic)
-        sudo mv /tmp/sdk-tools/* cmdline-tools/latest/
-        sudo rm -rf /tmp/sdk-tools tools.zip
+        # ✅ Find sdkmanager no matter where Google puts it
+        SDKMANAGER_PATH=$(find $ANDROID_SDK_ROOT -type f -name sdkmanager -perm -111 | head -n 1)
 
-        # ✅ CRITICAL FIX: export PATH for THIS step
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+        if [ -z "$SDKMANAGER_PATH" ]; then
+          echo "❌ sdkmanager not found after extraction"
+          exit 1
+        fi
 
-        # Verify sdkmanager NOW works
+        SDKMANAGER_DIR=$(dirname "$SDKMANAGER_PATH")
+        echo "✅ sdkmanager found at: $SDKMANAGER_PATH"
+
+        # Make it available immediately
+        export PATH="$SDKMANAGER_DIR:$PATH"
+
+        # Persist for future steps
+        echo "$SDKMANAGER_DIR" >> $GITHUB_PATH
+        echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+
         sdkmanager --version
-
         yes | sdkmanager --licenses
 
         sdkmanager \
@@ -67,5 +74,24 @@ jobs:
           "build-tools;31.0.0" \
           "ndk;23.1.7779620"
 
-        # Also persist PATH for later steps
-        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+    - name: Install Python build tools
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install buildozer cython
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Verify required commands
+      run: |
+        which java
+        which sdkmanager
+        which buildozer
+
+    - name: Build APK with Buildozer
+      run: |
+        buildozer -v android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: silomanager-apk
+        path: bin/*.apk
