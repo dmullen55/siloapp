@@ -13,7 +13,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       ANDROID_SDK_ROOT: /home/runner/android-sdk
       ANDROID_HOME: /home/runner/android-sdk
-      NDKAPI: "21"
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
     - name: Checkout repo
@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install system dependencies
+    - name: Install system dependencies (Java 17!)
       run: |
         sudo apt update
         sudo apt install -y \
@@ -37,17 +37,24 @@ jobs:
           libstdc++6 \
           wget
 
-    - name: Install Android SDK (with AIDL)
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
+
+    - name: Install Android SDK (safe layout)
       run: |
         mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
 
         wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
         unzip tools.zip
-        mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/ || true
 
-        export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+        # Ensure correct directory layout
+        if [ ! -d "cmdline-tools/latest" ]; then
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/
+        fi
+
+        export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 
         yes | sdkmanager --licenses
 
@@ -62,7 +69,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install buildozer==1.5.0 cython
 
-    - name: Build APK with Buildozer (FULL LOG)
+    - name: Build APK with Buildozer (verbose)
       run: |
-        set -x
         buildozer -v android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: silomanager-apk
+        path: bin/*.apk
