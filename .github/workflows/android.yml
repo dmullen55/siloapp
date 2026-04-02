@@ -102,6 +102,15 @@ jobs:
       run: |
         buildozer android clean || true
         rm -rf ~/.buildozer
+    
+    - name: Force single NDK version (CRITICAL FIX)
+      run: |
+        echo "ANDROID_NDK=" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
+        echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
+
+        echo "ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_EN
+
 
     - name: Build APK with Buildozer (trace)
       run: |
