@@ -109,7 +109,8 @@ jobs:
         echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
         echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
 
-        echo "ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_EN
+        echo "ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+
 
 
     - name: Build APK with Buildozer (trace)
