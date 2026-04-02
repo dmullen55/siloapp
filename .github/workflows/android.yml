@@ -1,5 +1,5 @@
 name: Build Android APK
- 
+
 on:
   push:
     branches: ["main"]
@@ -13,15 +13,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      # ✅ FORCE Buildozer to use THIS SDK (not ~/.buildozer)
+      # Force Buildozer to use THIS SDK (not ~/.buildozer)
       ANDROIDSDK: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
-
       ANDROIDNDK: /usr/local/lib/android/sdk/ndk/23.1.7779620
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
     - name: Checkout repository
@@ -43,7 +41,7 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK with build-tools (AIDL guaranteed)
+    - name: Install Android SDK (correct layout + AIDL)
       run: |
         set -eux
 
@@ -57,7 +55,7 @@ jobs:
         sudo unzip -q tools.zip -d cmdline-tools/latest
         sudo rm tools.zip
 
-        # ✅ Flatten layout so sdkmanager works
+        # Flatten layout so sdkmanager is exactly where Buildozer expects it
         sudo mv cmdline-tools/latest/cmdline-tools/* cmdline-tools/latest/
         sudo rmdir cmdline-tools/latest/cmdline-tools
 
@@ -72,36 +70,42 @@ jobs:
           "build-tools;31.0.0" \
           "ndk;23.1.7779620"
 
-        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-        
-    - name: Create legacy sdkmanager path for Buildozer
-      run: |
+        # Legacy compatibility path Buildozer still checks
         sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
         sudo ln -sf \
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
           /usr/local/lib/android/sdk/tools/bin/sdkmanager
+
+        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+
+    - name: Remove Buildozer cached SDK
+      run: |
+        rm -rf ~/.buildozer/android/platform/android-sdk
+
     - name: Install Python build tools
       run: |
         python -m pip install --upgrade pip
         python -m pip install buildozer cython
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Verify AIDL is available
+    - name: Verify AIDL exists
       run: |
         ls /usr/local/lib/android/sdk/build-tools/31.0.0/aidl
 
-    - name: Remove Buildozer cached Android SDK
+    - name: Full Buildozer clean
       run: |
-        rm -rf ~/.buildozer/android/platform/android-sdk
+        buildozer android clean || true
+        rm -rf ~/.buildozer
 
-
-    - name: Build APK with Buildozer
+    - name: Build APK with Buildozer (trace)
       run: |
-        buildozer -v android debug
+        set -x
+        buildozer android debug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: silomanager-apk
         path: bin/*.apk
+``
