@@ -85,6 +85,11 @@ jobs:
       run: |
         ls /usr/local/lib/android/sdk/build-tools/31.0.0/aidl
 
+        - name: Remove Buildozer cached Android SDK
+      run: |
+        rm -rf ~/.buildozer/android/platform/android-sdk
+
+
     - name: Build APK with Buildozer
       run: |
         buildozer -v android debug
