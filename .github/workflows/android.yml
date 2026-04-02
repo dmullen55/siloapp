@@ -38,9 +38,9 @@ jobs:
 
         echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
 
-    - name: Install Android SDK (absolute-path, layout-safe)
+    - name: Install Android SDK (final correct layout)
       run: |
-        set -e
+        set -eux
 
         sudo mkdir -p $ANDROID_SDK_ROOT
         cd $ANDROID_SDK_ROOT
@@ -49,23 +49,22 @@ jobs:
         sudo mkdir -p cmdline-tools/latest
 
         sudo wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-
-        # unzip INTO latest so layout is guaranteed
         sudo unzip -q tools.zip -d cmdline-tools/latest
         sudo rm tools.zip
 
+        # ✅ FLATTEN the directory (this was the missing piece)
+        sudo mv cmdline-tools/latest/cmdline-tools/* cmdline-tools/latest/
+        sudo rmdir cmdline-tools/latest/cmdline-tools
+
         SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
 
-        # sanity check (this is where previous runs failed)
-        if [ ! -x "$SDKMANAGER" ]; then
-          echo "❌ sdkmanager NOT found at expected location"
-          ls -R cmdline-tools
-          exit 1
-        fi
+        # Sanity check
+        test -x "$SDKMANAGER"
 
-        echo "✅ sdkmanager located at $SDKMANAGER"
+        # Make available immediately
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
-        # Accept licenses and install components (ALWAYS pass --sdk_root)
+        # Accept licenses & install required components
         yes | "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT --licenses
 
         "$SDKMANAGER" --sdk_root=$ANDROID_SDK_ROOT \
@@ -74,7 +73,7 @@ jobs:
           "build-tools;31.0.0" \
           "ndk;23.1.7779620"
 
-        # Persist paths for later steps
+        # Persist PATH for later steps
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
 
