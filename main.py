@@ -10,6 +10,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.togglebutton import ToggleButton
 from kivy.lang import Builder
+import certifi
 
 # ---------------------------------
 # SUPABASE REST CONFIG (ANDROID SAFE)
@@ -31,7 +32,7 @@ def sb_select(table, order=None):
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=HEADERS,
-        params=params
+        params=params,verify=certifi.where()
     )
     return r.json() if r.ok else []
 
@@ -39,20 +40,20 @@ def sb_insert(table, data):
     return requests.post(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=HEADERS,
-        json=data
+        json=data,verify=certifi.where()
     ).ok
 
 def sb_update(table, col, val, data):
     return requests.patch(
         f"{SUPABASE_URL}/rest/v1/{table}?{col}=eq.{val}",
         headers=HEADERS,
-        json=data
+        json=data,verify=certifi.where()
     ).ok
 
 def sb_delete(table, col, val):
     return requests.delete(
         f"{SUPABASE_URL}/rest/v1/{table}?{col}=eq.{val}",
-        headers=HEADERS
+        headers=HEADERS,verify=certifi.where()
     ).ok
 
 # -----------------
