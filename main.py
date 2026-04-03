@@ -180,13 +180,28 @@ class SiloApp(App):
     inventory = []
     silos = []
 
-    def build(self):
-        self.load_all()
-        return Builder.get_running_app().root
+    
+def build(self):
+    return Builder.get_running_app().root
 
-    def load_all(self):
+
+from threading import Thread
+
+def on_start(self):
+    Thread(target=self.safe_load_all, daemon=True).start()
+
+
+
+    
+def safe_load_all(self):
+    try:
         self.inventory = [Material(**m) for m in sb_select("inventory")]
         self.silos = [Silo(**s) for s in sb_select("silos", order="silo_id")]
+    except Exception as e:
+        print("Startup load failed:", e)
+        self.inventory = []
+        self.silos = []
+
 
 if __name__ == "__main__":
     SiloApp().run()
