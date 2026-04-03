@@ -1,5 +1,15 @@
 [app]
 
+# Force GLES2 (disable ES3 which crashes silently)
+android.opengl_es2 = 1
+android.opengl_es3 = 0
+
+# Disable hardware acceleration (prevents SDL crashes)
+android.hardware_acceleration = False
+
+# Prevent surface resize crash during startup
+android.window_soft_input_mode = adjustResize
+
 title = Silo Management
 package.name = silomanager
 package.domain = org.test
@@ -33,7 +43,7 @@ android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
 android.accept_sdk_license = True
 android.skip_update = True
 
-android.archs = arm64-v8a, armeabi-v7a
+android.archs = armeabi-v7a
 p4a.bootstrap = sdl2
 android.allow_backup = True
 
@@ -41,4 +51,4 @@ android.allow_backup = True
 log_level = 2
 warn_on_root = 1
 build_dir = .buildozer
-``
+
