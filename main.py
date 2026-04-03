@@ -198,8 +198,13 @@ class SiloApp(App):
     silos = []
 
     
+
 def build(self):
-    return Builder.get_running_app().root
+    sm = ScreenManager()
+    sm.add_widget(MainScreen(name="main"))
+    sm.add_widget(DischargeScreen(name="discharge"))
+    return sm
+
 
 
 from threading import Thread
