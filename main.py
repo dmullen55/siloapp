@@ -12,6 +12,12 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.lang import Builder
 import certifi
 
+import traceback
+from kivy.clock import Clock
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+
+
 # ---------------------------------
 # SUPABASE REST CONFIG (ANDROID SAFE)
 # ---------------------------------
@@ -59,6 +65,16 @@ def sb_delete(table, col, val):
 # -----------------
 # DATA MODELS
 # -----------------
+
+
+def show_error(message):
+    def _popup(dt):
+        Popup(
+            title="App Error",
+            content=Label(text=message),
+            size_hint=(0.9, 0.6)
+        ).open()
+    Clock.schedule_once(_popup)
 
 class Silo:
     def __init__(self, silo_id, location, current_material="Empty"):
@@ -194,14 +210,16 @@ def on_start(self):
 
 
     
+
 def safe_load_all(self):
     try:
         self.inventory = [Material(**m) for m in sb_select("inventory")]
         self.silos = [Silo(**s) for s in sb_select("silos", order="silo_id")]
-    except Exception as e:
-        print("Startup load failed:", e)
-        self.inventory = []
-        self.silos = []
+    except Exception:
+        err = traceback.format_exc()
+        print(err)
+        show_error(err)
+
 
 
 if __name__ == "__main__":
