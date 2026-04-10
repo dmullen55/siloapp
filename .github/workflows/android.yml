@@ -17,7 +17,7 @@ jobs:
       ANDROIDSDK: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROIDNDK: /usr/local/lib/android/sdk/ndk/23.1.7779620
+      ANDROIDNDK: /usr/local/lib/android/sdk/ndk/25.2.9519653
 
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
