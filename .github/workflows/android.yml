@@ -1,65 +1,71 @@
-name: Build Silo Manager APK
- 
+name: Build Android APK
+
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
-          build-essential \
-          git \
-          python3-dev \
-          ffmpeg \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev \
-          openjdk-17-jdk \
-          zip \
-          unzip \
-          autoconf \
-          libtool \
-          pkg-config \
-          libncurses5-dev \
-          libncursesw5-dev \
-          cmake
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            openjdk-17-jdk \
+            zip unzip curl \
+            automake autoconf libtool \
+            libffi-dev libssl-dev \
+            cmake pkg-config
 
-    - name: Install Buildozer and Cython
-      run: |
-        pip install --upgrade pip
-        pip install "cython<3.0" buildozer
+      - name: Install Android SDK
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk
 
-    - name: Build APK
-      run: |
-        # We use 'yes |' to automatically accept Android SDK licenses during build
-        yes | buildozer -v android debug
-      env:
-        # Increase logging to see the exact point of failure if it occurs
-        BUILDOZER_LOG_LEVEL: 2
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip commandlinetools-linux-*.zip
+          mv cmdline-tools cmdline-tools.tmp
+          mkdir cmdline-tools/latest
+          mv cmdline-tools.tmp/* cmdline-tools/latest
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: SiloManager-Debug-APK
-        path: bin/*.apk
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+
+          yes | sdkmanager --licenses
+
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-31" \
+            "build-tools;31.0.0" \
+            "ndk;25.2.9519653"
+
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      - name: Build APK
+        env:
+          ANDROID_SDK_ROOT: $HOME/android-sdk
+          ANDROID_HOME: $HOME/android-sdk
+        run: |
+          buildozer android clean
+          buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SiloManagement-APK
+          path: bin/*.apk
