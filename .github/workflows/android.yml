@@ -28,23 +28,24 @@ jobs:
             libffi-dev libssl-dev \
             cmake pkg-config
 
-      - name: Install Android SDK
+      - name: Install Android SDK (FIXED)
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk
+          ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
+          cd $ANDROID_SDK_ROOT/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip commandlinetools-linux-*.zip
-          mv cmdline-tools cmdline-tools.tmp
-          mkdir cmdline-tools/latest
-          mv cmdline-tools.tmp/* cmdline-tools/latest
+          rm commandlinetools-linux-*.zip
+
+          # Rename extracted folder to "latest"
+          mv cmdline-tools latest
 
           export ANDROID_SDK_ROOT=$HOME/android-sdk
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
 
           yes | sdkmanager --licenses
-
           sdkmanager \
             "platform-tools" \
             "platforms;android-31" \
