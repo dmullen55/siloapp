@@ -10,16 +10,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
@@ -28,28 +25,28 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y \
-            git \
-            zip unzip curl \
+            git zip unzip curl \
             automake autoconf libtool \
-            libffi-dev libssl-dev \
-            cmake pkg-config
+            libffi-dev libssl-dev cmake pkg-config
 
-      - name: Install Android SDK
+      - name: Install Android SDK (modern layout)
         run: |
-          ANDROID_SDK_ROOT=$HOME/android-sdk
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-          cd $ANDROID_SDK_ROOT/cmdline-tools
+          SDK=$HOME/android-sdk
+          mkdir -p $SDK/cmdline-tools
+          cd $SDK/cmdline-tools
 
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip commandlinetools-linux-*.zip
           rm commandlinetools-linux-*.zip
           mv cmdline-tools latest
 
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export ANDROIDSDK=$ANDROID_SDK_ROOT
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+          echo "ANDROID_SDK_ROOT=$SDK" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          echo "$SDK/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$SDK/platform-tools" >> $GITHUB_PATH
 
+      - name: Accept licenses and install components
+        run: |
           yes | sdkmanager --licenses
           sdkmanager \
             "platform-tools" \
@@ -62,21 +59,13 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Clean old Buildozer state
-        run: |
-          rm -rf .buildozer
+      - name: FULL CLEAN
+        run: rm -rf .buildozer
 
-      - name: Build APK (FORCED SDK PATH)
-        env:
-          ANDROID_SDK_ROOT: $HOME/android-sdk
-          ANDROID_HOME: $HOME/android-sdk
-          ANDROIDSDK: $HOME/android-sdk
-          ANDROIDNDK: $HOME/android-sdk/ndk/25.2.9519653
-        run: |
-          buildozer -v android debug
+      - name: Build APK
+        run: buildozer -v android debug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: SiloManagement-APK
           path: bin/*.apk
