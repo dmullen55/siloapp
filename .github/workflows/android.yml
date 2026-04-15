@@ -24,12 +24,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Install system dependencies (CRITICAL)
+      - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y \
             git \
-            openjdk-17-jdk \
             zip unzip curl \
             automake autoconf libtool \
             libffi-dev libssl-dev \
@@ -48,6 +47,7 @@ jobs:
 
           export ANDROID_SDK_ROOT=$HOME/android-sdk
           export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export ANDROIDSDK=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
 
           yes | sdkmanager --licenses
@@ -57,19 +57,21 @@ jobs:
             "build-tools;31.0.0" \
             "ndk;25.2.9519653"
 
-      - name: Install Buildozer & Cython
+      - name: Install Buildozer
         run: |
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: FORCE CLEAN BUILDOZER (IMPORTANT)
+      - name: Clean old Buildozer state
         run: |
           rm -rf .buildozer
 
-      - name: Build APK
+      - name: Build APK (FORCED SDK PATH)
         env:
           ANDROID_SDK_ROOT: $HOME/android-sdk
           ANDROID_HOME: $HOME/android-sdk
+          ANDROIDSDK: $HOME/android-sdk
+          ANDROIDNDK: $HOME/android-sdk/ndk/25.2.9519653
         run: |
           buildozer -v android debug
 
