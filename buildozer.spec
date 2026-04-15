@@ -1,4 +1,3 @@
-
 [app]
 title = Silo Management
 package.name = silomanager
@@ -24,7 +23,7 @@ android.minapi = 21
 android.ndk_api = 21
 android.build_tools_version = 31.0.0
 
-# IMPORTANT: NDK 25+ only supports arm64
+# IMPORTANT: Only arm64 works with NDK 25+
 android.archs = arm64-v8a
 
 p4a.bootstrap = sdl2
