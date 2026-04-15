@@ -23,14 +23,16 @@ android.minapi = 21
 android.ndk_api = 21
 android.build_tools_version = 31.0.0
 
-# IMPORTANT: Only arm64 works with NDK 25+
 android.archs = arm64-v8a
 
 p4a.bootstrap = sdl2
 android.allow_backup = True
 
+# ✅ THESE TWO LINES ARE CRITICAL
+android.sdk_path = /home/runner/android-sdk
+android.skip_update = False
+
 android.accept_sdk_license = True
-android.skip_update = True
 
 [buildozer]
 log_level = 2
