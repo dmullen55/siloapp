@@ -1,33 +1,19 @@
-name: Build Android APK
+name: Build Silo Manager APK
  
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
-    env:
-      # Force Buildozer to use THIS SDK (not ~/.buildozer)
-      ANDROIDSDK: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROIDNDK: /usr/local/lib/android/sdk/ndk/25.2.9519653
-
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Set up Python 3.10 (REQUIRED for Buildozer)
+
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
@@ -36,106 +22,44 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y \
-          openjdk-17-jdk \
-          wget \
-          unzip \
-          tar \
-          git \
           build-essential \
-          zip
+          git \
+          python3-dev \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          openjdk-17-jdk \
+          zip \
+          unzip \
+          autoconf \
+          libtool \
+          pkg-config \
+          libncurses5-dev \
+          libncursesw5-dev \
+          cmake
 
-        echo "/usr/lib/jvm/java-17-openjdk-amd64/bin" >> $GITHUB_PATH
-
-    - name: Install Android SDK (correct layout + AIDL)
+    - name: Install Buildozer and Cython
       run: |
-        set -eux
+        pip install --upgrade pip
+        pip install "cython<3.0" buildozer
 
-        sudo mkdir -p /usr/local/lib/android/sdk
-        cd /usr/local/lib/android/sdk
-
-        sudo rm -rf cmdline-tools
-        sudo mkdir -p cmdline-tools/latest
-
-        sudo wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-        sudo unzip -q tools.zip -d cmdline-tools/latest
-        sudo rm tools.zip
-
-        # Flatten layout so sdkmanager is exactly where Buildozer expects it
-        sudo mv cmdline-tools/latest/cmdline-tools/* cmdline-tools/latest/
-        sudo rmdir cmdline-tools/latest/cmdline-tools
-
-        SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
-
-        "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk --version
-        yes | "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk --licenses
-
-        "$SDKMANAGER" --sdk_root=/usr/local/lib/android/sdk \
-          "platform-tools" \
-          "platforms;android-31" \
-          "build-tools;31.0.0" \
-          "ndk;25.2.9519653"
-
-        # Legacy compatibility path Buildozer still checks
-        sudo mkdir -p /usr/local/lib/android/sdk/tools/bin
-        sudo ln -sf \
-          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
-          /usr/local/lib/android/sdk/tools/bin/sdkmanager
-
-        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-
-    - name: Remove Buildozer cached SDK
+    - name: Build APK
       run: |
-        rm -rf ~/.buildozer/android/platform/android-sdk
+        # We use 'yes |' to automatically accept Android SDK licenses during build
+        yes | buildozer -v android debug
+      env:
+        # Increase logging to see the exact point of failure if it occurs
+        BUILDOZER_LOG_LEVEL: 2
 
-   
-    - name: Install Python build tools (p4a compatible)
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install \
-        "setuptools<70" \
-        "cython==0.29.36" \
-        buildozer
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-
-    - name: Verify AIDL exists
-      run: |
-        ls /usr/local/lib/android/sdk/build-tools/31.0.0/aidl
-
-    - name: Full Buildozer clean
-      run: |
-        buildozer android clean || true
-        rm -rf ~/.buildozer
-    
-
-    - name: Force python-for-android to use NDK 25 ONLY
-      run: |
-        echo "ANDROID_NDK_LATEST_HOME=" >> $GITHUB_ENV
-        echo "ANDROID_NDK=" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
-        echo "ANDROIDNDK=/usr/local/lib/android/sdk/ndk/25.2.9519653" >> $GITHUB_ENV
-
-
-    - name: Cache Buildozer & p4a
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.buildozer
-          .buildozer
-        key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-        restore-keys: |
-          buildozer-${{ runner.os }}-
-
-
-    - name: Build APK with Buildozer (trace)
-      run: |
-        set -x
-        buildozer android debug
-
-    - name: Upload APK artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: silomanager-apk
+        name: SiloManager-Debug-APK
         path: bin/*.apk
