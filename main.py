@@ -33,26 +33,15 @@ class SiloApp(App):
     SUPABASE_URL = "https://klhgoevgviqvrihplxxl.supabase.co"
     SUPABASE_KEY = "sb_publishable_O41CeFOX5Tb6D-rAFwPPuQ_KS5-ivAH"
 
-    def build(self):
+    ddef build(self):
         return Builder.load_string(kv_string)
 
     def test_connection(self):
-        status = self.root.get_screen('main').ids.status_label
+        # Moving the import here prevents the app from crashing on startup 
+        # if the library is missing.
         try:
-            # Simple GET request to a table (e.g., 'materials' or 'silos')
-            headers = {
-                "apikey": self.SUPABASE_KEY,
-                "Authorization": f"Bearer {self.SUPABASE_KEY}"
-            }
-            # Change 'your_table_name' to your actual inventory table
-            response = requests.get(f"{self.SUPABASE_URL}/rest/v1/your_table_name?select=*", headers=headers, timeout=5)
-            
-            if response.status_code == 200:
-                status.text = "✅ Connected to Supabase!"
-                status.color = (0, 1, 0, 1) # Green
-            else:
-                status.text = f"❌ Error: {response.status_code}"
-                status.color = (1, 0, 0, 1) # Red
-        except Exception as e:
-            status.text = f"⚠️ Connection Failed: {str(e)}"
-            status.color = (1, 0, 0, 1)
+            import requests 
+            status = self.root.get_screen('main').ids.status_label
+            # ... rest of your connection code ...
+        except ImportError:
+            self.root.get_screen('main').ids.status_label.text = "Missing Requests Library"
