@@ -7,7 +7,7 @@ version = 0.1
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-requirements = python3,kivy==2.3.0,requests,certifi
+requirements = requirements = python3,kivy==2.3.0,requests,certifi,openssl,urllib3,charset-normalizer,idna
 
 orientation = portrait
 fullscreen = 0
