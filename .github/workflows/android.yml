@@ -33,22 +33,21 @@ jobs:
             libtinfo5 libffi-dev libssl-dev libusb-1.0-0-dev \
             python3-setuptools
           
-          # Install Buildozer and Cython
+          # We pin Cython to a version known to work with Kivy 2.3.0
           pip install --upgrade pip
-          pip install --user buildozer cython virtualenv
-          # Add local bin to path so 'buildozer' command is recognized
+          pip install --user buildozer "cython<3.0.0" virtualenv
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build with Buildozer
         run: |
-          # 1. Force remove any corrupted platform folders
-          rm -rf .buildozer/android/platform
+          # Remove previous failed build attempts to fix FileNotFoundError
+          rm -rf .buildozer/
           
-          # 2. Re-initialize the clean state
+          # Ensure we start with a fresh state
           buildozer android clean
           
-          # 3. Run the build
-          # Using 'yes |' handles the SDK license prompts automatically
+          # 'yes |' handles the SDK license prompts automatically
+          # '-v' provides the verbose logs needed to debug if it fails again
           yes | buildozer -v android debug
 
       - name: Upload APK
