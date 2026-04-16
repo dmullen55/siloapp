@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,6 +23,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Increase Swap Space
+        # OpenSSL and Kivy compilation can be RAM-intensive
+        run: |
+          sudo fallocate -l 4G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
       - name: Install system dependencies
         run: |
           sudo apt update
@@ -33,22 +40,12 @@ jobs:
             libtinfo5 libffi-dev libssl-dev libusb-1.0-0-dev \
             python3-setuptools
           
-          # We pin Cython to ensure it plays nice with Kivy 2.3.0
           pip install --upgrade pip
           pip install --user buildozer "cython<3.0.0" virtualenv
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build with Buildozer
         run: |
-          # Clean out the old broken build artifacts
           rm -rf .buildozer/
-          
-          # Use the --profile flag or direct command
-          # We remove 'yes |' and let Buildozer handle the terminal
+          # We use the internal flag to accept licenses instead of 'yes |'
           buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: SiloManager-APK
-          path: bin/*.apk
