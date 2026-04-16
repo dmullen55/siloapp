@@ -38,7 +38,9 @@ class MainScreen(Screen):
 
 class SiloApp(App):
     def build(self):
-        return ScreenManager()
+        # By returning nothing or removing this method, 
+        # Kivy will look for the root widget defined in your Builder string.
+        pass
 
 
 if __name__ == "__main__":
