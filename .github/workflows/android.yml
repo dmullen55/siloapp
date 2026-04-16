@@ -40,13 +40,12 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          # 1. Manually delete the directory to ensure no corrupted files remain
+          # Clean out the old broken build artifacts
           rm -rf .buildozer/
           
-          # 2. Go straight to build. 
-          # Buildozer will see the folder is missing and download everything fresh.
-          # 'yes |' handles all the Android SDK license prompts.
-          yes | buildozer -v android debug
+          # Use the --profile flag or direct command
+          # We remove 'yes |' and let Buildozer handle the terminal
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
