@@ -23,14 +23,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Increase Swap Space
-        # OpenSSL and Kivy compilation can be RAM-intensive
-        run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-
       - name: Install system dependencies
         run: |
           sudo apt update
@@ -47,5 +39,11 @@ jobs:
       - name: Build with Buildozer
         run: |
           rm -rf .buildozer/
-          # We use the internal flag to accept licenses instead of 'yes |'
+          # Buildozer will automatically handle the SDK/NDK download
           buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SiloManager-APK
+          path: bin/*.apk
