@@ -1,35 +1,27 @@
 [app]
-title = Silo Management
+title = Silo Manager
 package.name = silomanager
 package.domain = org.test
 version = 0.1
-
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-requirements = requirements = python3,kivy==2.3.0,requests,certifi,openssl,urllib3,charset-normalizer,idna
+# Added openssl and urllib3 for Supabase/HTTPS support
+requirements = python3,kivy==2.3.0,requests,certifi,openssl,urllib3,charset-normalizer,idna
 
 orientation = portrait
 fullscreen = 0
+android.permissions = INTERNET, CAMERA
 
-android.permissions = INTERNET
-
-android.opengl_es2 = 1
-android.hardware_acceleration = False
-android.window_soft_input_mode = adjustResize
-
-android.api = 31
+# Modern API levels for 2026 compatibility
+android.api = 33
 android.minapi = 21
+android.ndk = 25b
 android.ndk_api = 21
-android.build_tools_version = 31.0.0
 
 android.archs = arm64-v8a
 p4a.bootstrap = sdl2
-android.allow_backup = True
-
-# ✅ CRITICAL: LET BUILDOZER USE MODERN SDK LAYOUT
 android.accept_sdk_license = True
-android.skip_update = False
 
 [buildozer]
 log_level = 2
