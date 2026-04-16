@@ -44,4 +44,11 @@ class SiloApp(App):
 
 
 if __name__ == "__main__":
-    SiloApp().run()
+    try:
+        SiloApp().run()
+    except Exception as e:
+        # This will attempt to show the error on the screen
+        # though if the crash is at the 'import' level, this may still fail.
+        import traceback
+        with open("error_log.txt", "w") as f:
+            f.write(traceback.format_exc())
