@@ -38,8 +38,9 @@ jobs:
 
       - name: Build with Buildozer
         run: |
+          # Clean out old, broken build artifacts
           rm -rf .buildozer/
-          # Buildozer will automatically handle the SDK/NDK download
+          # Verbose mode helps us see exactly where it fails if it does
           buildozer -v android debug
 
       - name: Upload APK
