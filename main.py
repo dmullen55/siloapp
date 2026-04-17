@@ -31,8 +31,8 @@ class MainScreen(Screen):
 
 class SiloApp(App):
     # Placeholders for your Supabase credentials
-    SUPABASE_URL = "https://your-project.supabase.co"
-    SUPABASE_KEY = "your-anon-key"
+    SUPABASE_URL = "https://klhgoevgviqvrihplxxl.supabase.co"
+    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsaGdvZXZndmlxdnJpaHBseHhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjIxNDcsImV4cCI6MjA4ODk5ODE0N30.FqsZBtKnSrZx06Z6RdZ75zyRqD5-0mZXQp7TeGYEa0I"
 
     def build(self):
         # We return the loaded string directly. 
