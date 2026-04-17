@@ -38,9 +38,9 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          # Clean out old, broken build artifacts
+          # 1. This deletes the old, conflicting NDK folders
           rm -rf .buildozer/
-          # Verbose mode helps us see exactly where it fails if it does
+          # 2. This forces Buildozer to look at the NEW .spec file you just made
           buildozer -v android debug
 
       - name: Upload APK
