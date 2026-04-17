@@ -8,7 +8,7 @@ from kivy.clock import Clock
 
 # --- CONFIGURATION ---
 # Note the 'u' in 'viquvrihplxxl' - this must be exact
-SUPABASE_URL = "https://klhgoevgviquvrihplxxl.supabase.co"
+SUPABASE_URL = "https://klhgoevgviqvrihplxxl.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsaGdvZXZndmlxdnJpaHBseHhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjIxNDcsImV4cCI6MjA4ODk5ODE0N30.FqsZBtKnSrZx06Z6RdZ75zyRqD5-0mZXQp7TeGYEa0I"
 
 kv_string = """
@@ -65,7 +65,8 @@ class SiloApp(App):
                 f"{SUPABASE_URL}/rest/v1/silos?select=*", 
                 headers=headers, 
                 timeout=10,
-                verify=certifi.where()
+                verify=False  # Change this from certifi.where() to False
+            )
             )
             
             container.clear_widgets()
