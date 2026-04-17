@@ -5,6 +5,7 @@ package.domain = org.dmullen
 version = 0.1
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
+android.manifest.application_extra_xml = <uses-native-library android:name="libcrypto.so" android:required="false" /> <uses-native-library android:name="libssl.so" android:required="false" />
 
 # CRITICAL: Added openssl and supporting libraries for Supabase
 requirements = python3,kivy==2.3.0,requests,certifi,openssl,urllib3,charset-normalizer,idna
