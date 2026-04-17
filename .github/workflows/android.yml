@@ -34,20 +34,21 @@ jobs:
           
           pip install --upgrade pip
           pip install --user buildozer "cython<3.0.0" virtualenv
-          # This ensures the buildozer command is available in the next step
-          echo "/home/runner/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build with Buildozer
         run: |
-          # Use the pre-installed SDK/NDK paths on the runner
+          # Force Buildozer to use the Runner's pre-installed NDK 27.3
           export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
+          export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
           
-          # Clean and Build
+          # Clean old build attempts to prevent cache pollution
           rm -rf .buildozer/
+          
+          # Execute build using the explicit environment variables
           buildozer -v android debug
         env:
-          # This helps Buildozer find the tools in the GitHub runner
+          # These variables match the environment logs you provided
           ANDROID_SDK_HOME: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
 
