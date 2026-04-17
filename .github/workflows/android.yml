@@ -34,14 +34,22 @@ jobs:
           
           pip install --upgrade pip
           pip install --user buildozer "cython<3.0.0" virtualenv
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          # This ensures the buildozer command is available in the next step
+          echo "/home/runner/.local/bin" >> $GITHUB_PATH
 
       - name: Build with Buildozer
         run: |
-          # 1. This deletes the old, conflicting NDK folders
+          # Use the pre-installed SDK/NDK paths on the runner
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME
+          
+          # Clean and Build
           rm -rf .buildozer/
-          # 2. This forces Buildozer to look at the NEW .spec file you just made
           buildozer -v android debug
+        env:
+          # This helps Buildozer find the tools in the GitHub runner
+          ANDROID_SDK_HOME: /usr/local/lib/android/sdk
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
