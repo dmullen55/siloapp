@@ -3,12 +3,30 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
 from kivy.uix.label import Label
 import requests
+import certifi # Add this import
 
 # --- CONFIGURATION ---
 # Using your verified URL and Key
-SUPABASE_URL = "https://klhgoevgviquvrihplxxl.supabase.co"
+SUPABASE_URL = "https://klhgoevgviqvrihplxxl.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsaGdvZXZndmlxdnJpaHBseHhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjIxNDcsImV4cCI6MjA4ODk5ODE0N30.FqsZBtKnSrZx06Z6RdZ75zyRqD5-0mZXQp7TeGYEa0I"
 
+def fetch_silos(self):
+        container = self.root_sm.get_screen('silo_view').ids.silo_container
+        container.clear_widgets()
+        
+        try:
+            headers = {
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}"
+            }
+            # Use 'certifi' to tell the app where the security certificates are
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/silos?select=*", 
+                headers=headers, 
+                timeout=10,
+                verify=certifi.where() # Add this line here
+            )
+            
 kv_string = """
 ScreenManager:
     SiloViewScreen:
