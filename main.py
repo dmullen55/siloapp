@@ -1,32 +1,14 @@
+import requests
+import certifi
 from kivy.app import App
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
 from kivy.uix.label import Label
-import requests
-import certifi # Add this import
 
 # --- CONFIGURATION ---
-# Using your verified URL and Key
-SUPABASE_URL = "https://klhgoevgviqvrihplxxl.supabase.co"
+SUPABASE_URL = "https://klhgoevgviquvrihplxxl.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsaGdvZXZndmlxdnJpaHBseHhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjIxNDcsImV4cCI6MjA4ODk5ODE0N30.FqsZBtKnSrZx06Z6RdZ75zyRqD5-0mZXQp7TeGYEa0I"
 
-def fetch_silos(self):
-        container = self.root_sm.get_screen('silo_view').ids.silo_container
-        container.clear_widgets()
-        
-        try:
-            headers = {
-                "apikey": SUPABASE_KEY,
-                "Authorization": f"Bearer {SUPABASE_KEY}"
-            }
-            # Use 'certifi' to tell the app where the security certificates are
-            response = requests.get(
-                f"{SUPABASE_URL}/rest/v1/silos?select=*", 
-                headers=headers, 
-                timeout=10,
-                verify=certifi.where() # Add this line here
-            )
-            
 kv_string = """
 ScreenManager:
     SiloViewScreen:
@@ -70,7 +52,6 @@ class SiloApp(App):
         return self.root_sm
 
     def on_start(self):
-        # Automatically fetch data when the app opens
         self.fetch_silos()
 
     def fetch_silos(self):
@@ -82,25 +63,25 @@ class SiloApp(App):
                 "apikey": SUPABASE_KEY,
                 "Authorization": f"Bearer {SUPABASE_KEY}"
             }
-            # Fetching specifically from your 'silos' table
+            # Adding verify=certifi.where() for Android SSL stability
             response = requests.get(
                 f"{SUPABASE_URL}/rest/v1/silos?select=*", 
                 headers=headers, 
-                timeout=10
+                timeout=10,
+                verify=certifi.where()
             )
             
             if response.status_code == 200:
                 data = response.json()
                 if not data:
-                    container.add_widget(Label(text="No silos found in database.", color=(1, 1, 0, 1)))
+                    container.add_widget(Label(text="No silos found.", color=(1, 1, 0, 1)))
                 
                 for silo in data:
-                    silo_id = silo.get('silo_id', 'Unknown')
-                    material = silo.get('current_material', 'Empty')
-                    location = silo.get('location', 'N/A')
+                    s_id = silo.get('silo_id', 'Unknown')
+                    mat = silo.get('current_material', 'Empty')
+                    loc = silo.get('location', 'N/A')
                     
-                    # Create a simple display for each silo
-                    txt = f"[b]{silo_id}[/b] ({location})\nContent: {material}"
+                    txt = f"[b]{s_id}[/b] ({loc})\\nContent: {mat}"
                     lbl = Label(
                         text=txt, 
                         markup=True, 
@@ -111,11 +92,12 @@ class SiloApp(App):
                     lbl.bind(size=lbl.setter('text_size'))
                     container.add_widget(lbl)
             else:
-                container.add_widget(Label(text=f"Error: {response.status_code}", color=(1, 0, 0, 1)))
+                container.add_widget(Label(text=f"HTTP Error: {response.status_code}", color=(1, 0, 0, 1)))
                 
         except Exception as e:
-            container.add_widget(Label(text="Connection Failed", color=(1, 0, 0, 1)))
-            print(f"Error: {e}")
+            # Show the actual error on screen for easier debugging
+            err_text = str(e)[:40]
+            container.add_widget(Label(text=f"Error: {err_text}", color=(1, 0, 0, 1)))
 
 if __name__ == "__main__":
     SiloApp().run()
