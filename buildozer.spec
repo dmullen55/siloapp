@@ -6,14 +6,14 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# hostpython3 is essential for compiling requests/openssl
+# hostpython3 is mandatory for the build to succeed on GitHub
 requirements = python3,hostpython3,kivy==2.3.0,requests,certifi,openssl,urllib3,idna,charset-normalizer
 
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET
 
-# Removing the specific NDK version line allows the build to auto-detect NDK 27.3
+# Let Buildozer handle NDK/SDK paths automatically
 android.api = 33
 android.minapi = 21
 android.archs = arm64-v8a
