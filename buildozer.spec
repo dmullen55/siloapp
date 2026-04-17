@@ -6,21 +6,19 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# hostpython3 is REQUIRED for the build process to complete
-requirements = python3,hostpython3,kivy==2.3.0,requests,certifi,openssl,urllib3,charset-normalizer,idna
+# Simplified requirements to ensure a clean build
+requirements = python3,hostpython3,kivy==2.3.0,requests,certifi,openssl,urllib3,idna,charset-normalizer
 
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET
+
+# Let Buildozer manage the NDK and SDK versions automatically
 android.api = 33
 android.minapi = 21
-android.ndk = 25b
-android.ndk_api = 21
 android.archs = arm64-v8a
 p4a.bootstrap = sdl2
 android.accept_sdk_license = True
-
-# Allows the app to bypass strict SSL/DNS issues during testing
 android.uses_cleartext_traffic = True
 
 [buildozer]
