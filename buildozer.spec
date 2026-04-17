@@ -6,14 +6,14 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# Simplified requirements to ensure a clean build
+# hostpython3 is essential for compiling requests/openssl
 requirements = python3,hostpython3,kivy==2.3.0,requests,certifi,openssl,urllib3,idna,charset-normalizer
 
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET
 
-# Let Buildozer manage the NDK and SDK versions automatically
+# Removing the specific NDK version line allows the build to auto-detect NDK 27.3
 android.api = 33
 android.minapi = 21
 android.archs = arm64-v8a
